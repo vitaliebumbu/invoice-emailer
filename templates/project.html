@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}{{ project_name }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mt-3">
+  <div class="col-lg-6">
+
+    <a href="/" class="text-muted text-decoration-none small">&larr; Search another project</a>
+    <h4 class="mt-2 mb-1">{{ project_name }}</h4>
+    <p class="text-muted small mb-4">Proposal: {{ pdf_filename }}</p>
+
+    <!-- Send form -->
+    <div class="card p-4 mb-4">
+      <h6 class="mb-1">Send Invoice Request</h6>
+      <p class="text-muted small mb-3">To: billing@acadiacraft.com &nbsp;&bull;&nbsp; CC: denis@acadiacraft.com</p>
+
+      <form method="POST" action="/send">
+        <input type="hidden" name="project_name" value="{{ project_name }}">
+        <input type="hidden" name="pdf_path" value="{{ pdf_path }}">
+
+        <div class="mb-4">
+          <label class="form-label">Select Invoice Stage</label>
+          <div class="d-grid gap-2">
+            {% for stage in stages %}
+            <button type="submit" name="stage" value="{{ stage }}"
+                    class="btn btn-outline-primary text-start"
+                    onclick="return confirm('Send {{ stage }} invoice request for {{ project_name }}?')">
+              {{ stage }}
+            </button>
+            {% endfor %}
+          </div>
+        </div>
+      </form>
+
+      <!-- Preview of email body -->
+      <div class="border rounded p-3 bg-light small text-muted">
+        <div class="fw-semibold mb-1">Email preview:</div>
+        Hi Denis,<br>
+        Please send an invoice for <em>[selected stage]</em> for <strong>{{ project_name }}</strong>
+        based on the attached proposal.<br><br>
+        Thank you,<br>Vitalie
+      </div>
+    </div>
+
+    <!-- Invoice history -->
+    {% if invoices %}
+    <div class="card p-4">
+      <h6 class="mb-3 text-muted">Sent for this project</h6>
+      <table class="table table-sm mb-0">
+        <thead class="table-light">
+          <tr><th>Stage</th><th>Proposal</th><th class="text-center">Sent</th></tr>
+        </thead>
+        <tbody>
+          {% for inv in invoices %}
+          <tr>
+            <td><span class="badge bg-secondary">{{ inv.stage }}</span></td>
+            <td class="small text-muted">{{ inv.pdf_filename }}</td>
+            <td class="text-center text-muted small">{{ inv.sent_at[:16].replace("T", " ") }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% endif %}
+
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,7 @@
+.env
+uploads/
+invoices.db
+__pycache__/
+*.pyc
+venv/
+.venv/

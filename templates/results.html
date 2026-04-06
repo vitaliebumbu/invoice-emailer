@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Results for "{{ query }}"{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mt-3">
+  <div class="col-lg-7">
+    <a href="/" class="text-muted text-decoration-none small">&larr; Search again</a>
+    <h5 class="mt-2 mb-3">{{ results|length }} projects found for "{{ query }}"</h5>
+
+    <div class="card">
+      <ul class="list-group list-group-flush">
+        {% for r in results %}
+        <li class="list-group-item list-group-item-action" style="cursor:pointer"
+            onclick="location.href='/project?name={{ r.project_name|urlencode }}&pdf={{ r.pdf_path|urlencode }}'">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <div class="fw-semibold">{{ r.project_name }}</div>
+              <div class="text-muted small">{{ r.filename }}</div>
+            </div>
+            {% if r.code %}
+            <span class="badge bg-secondary ms-3">{{ r.code }}</span>
+            {% endif %}
+          </div>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+</div>
+{% endblock %}

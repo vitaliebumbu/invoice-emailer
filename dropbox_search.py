@@ -11,6 +11,7 @@ different drive or folder.
 
 import os
 import re
+from difflib import SequenceMatcher
 
 JOBS_ROOT = os.environ.get("JOBS_ROOT", r"C:\Acadia Craft Dropbox\1 AC Jobs")
 DEFAULT_SEARCH_FOLDERS = [
@@ -163,9 +164,47 @@ def _project_folder_matches(folder_name, query, is_code):
     if not terms:
         return False
 
-    required_matches = len(terms) if len(terms) <= 2 else max(2, len(terms) - 1)
-    matched_terms = sum(1 for term in terms if term in folder_lower)
-    return matched_terms >= required_matches
+    return _is_close_match(folder_name, query)
+
+
+def _similarity_score(folder_name, query):
+    folder_terms = set(_query_terms(folder_name))
+    query_terms = set(_query_terms(query))
+    if not folder_terms or not query_terms:
+        return 0
+
+    exact = 0
+    partial = 0
+    for query_term in query_terms:
+        if query_term in folder_terms:
+            exact += 1
+        elif any(_terms_are_close(query_term, folder_term) for folder_term in folder_terms):
+            partial += 1
+
+    return exact * 10 + partial * 4
+
+
+def _terms_are_close(left, right):
+    if left in right or right in left:
+        return True
+    if min(len(left), len(right)) < 5:
+        return False
+    return SequenceMatcher(None, left, right).ratio() >= 0.82
+
+
+def _is_close_match(folder_name, query):
+    query_terms = set(_query_terms(query))
+    folder_terms = set(_query_terms(folder_name))
+    if not query_terms:
+        return False
+
+    matched = 0
+    for query_term in query_terms:
+        if query_term in folder_terms or any(_terms_are_close(query_term, folder_term) for folder_term in folder_terms):
+            matched += 1
+
+    required = len(query_terms) if len(query_terms) <= 2 else len(query_terms) - 1
+    return matched >= required
 
 
 def _code_variants(code):
@@ -202,6 +241,11 @@ def _text_has_code(value, code_variants):
     )
 
 
+def _title_without_code(query):
+    clean = _clean_search_query(query)
+    return re.sub(r"\b[A-Z]{1,3}\d{1,4}\b", "", clean, count=1, flags=re.IGNORECASE).strip(" :-")
+
+
 def search_projects(query):
     """
     Search projects by code prefix or partial project name.
@@ -233,11 +277,11 @@ def search_projects(query):
             ]
             matched = bool(matched_pdfs)
 
-        if not matched and q_lower in project_name.lower():
+        if not matched and _project_folder_matches(project_name, q, is_code):
             matched = True
             matched_pdfs = pdfs
 
-        if matched and project_name not in seen:
+        if matched:
             seen.add(project_name)
             filename, pdf_path = _latest_pdf(matched_pdfs, proposal_dir)
             code_match = re.search(r"\b([A-Z]{1,3}\d{2,4})\b", filename, re.IGNORECASE)
@@ -288,6 +332,34 @@ def search_projects(query):
                     "code": code,
                 }
             )
+
+    if not results and is_code:
+        title_query = _title_without_code(q)
+        if title_query:
+            similar_matches = []
+            for project_name, project_dir in _all_project_folders():
+                scored_pdfs = _pdfs_under(project_dir)
+                if not scored_pdfs:
+                    continue
+                if not _is_close_match(project_name, title_query):
+                    continue
+                score = _similarity_score(project_name, title_query)
+                filename, pdf_path = _latest_scored_pdf(scored_pdfs)
+                code_match = re.search(r"\b([A-Z]{1,3}\d{2,4})\b", filename, re.IGNORECASE)
+                code = code_match.group(1).upper() if code_match else q_upper
+                similar_matches.append(
+                    (
+                        score,
+                        {
+                            "project_name": project_name,
+                            "filename": filename,
+                            "pdf_path": pdf_path,
+                            "code": code,
+                        },
+                    )
+                )
+            similar_matches.sort(key=lambda item: (-item[0], item[1]["project_name"].lower()))
+            results.extend(match for _, match in similar_matches[:5])
 
     results.sort(key=lambda x: x["project_name"].lower())
     return results

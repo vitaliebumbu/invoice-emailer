@@ -176,6 +176,24 @@ def _code_variants(code):
     return variants
 
 
+def _clean_search_query(query):
+    clean = " ".join(str(query or "").split())
+    match = re.search(r"\b[A-Z]{1,3}\d{1,4}\b", clean, re.IGNORECASE)
+    if not match:
+        return clean
+
+    code = match.group(0).upper()
+    after_code = clean[match.end():]
+    title = re.split(
+        r"\b(?:CV|DRAWING|PROPOSAL|PROJECT INFO|Name:|Manager:|Customer:|Location:|Due Date:|clear info)\b",
+        after_code,
+        maxsplit=1,
+        flags=re.IGNORECASE,
+    )[0]
+    title = title.strip(" :-")
+    return f"{code} {title}".strip()
+
+
 def _text_has_code(value, code_variants):
     text = value.upper()
     return any(
@@ -191,7 +209,7 @@ def search_projects(query):
     Returns:
         [{"project_name", "filename", "pdf_path", "code"}]
     """
-    q = query.strip()
+    q = _clean_search_query(query)
     if not q:
         return []
 

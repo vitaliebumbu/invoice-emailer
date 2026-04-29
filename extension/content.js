@@ -55,6 +55,21 @@
       .slice(0, 160);
   }
 
+  function projectQueryFromText(value) {
+    const clean = cleanProjectQuery(value);
+    const codeMatch = clean.match(PROJECT_CODE_RE);
+    if (!codeMatch) return clean;
+
+    const code = codeMatch[0];
+    const afterCode = clean.slice(codeMatch.index + code.length);
+    const title = afterCode
+      .split(/\b(?:CV|DRAWING|PROPOSAL|PROJECT INFO|Name:|Manager:|Customer:|Location:|Due Date:|clear info)\b/i)[0]
+      .replace(/^[\s:-]+/, "")
+      .trim();
+
+    return title ? `${code} ${title}` : code;
+  }
+
   function visibleElement(element) {
     if (!(element instanceof HTMLElement)) return false;
     const rect = element.getBoundingClientRect();
@@ -88,7 +103,7 @@
       .filter(visibleElement)
       .map((element) => {
         const rect = element.getBoundingClientRect();
-        const value = cleanProjectQuery(element.innerText || element.textContent);
+        const value = projectQueryFromText(element.innerText || element.textContent);
         return { element, rect, value };
       })
       .filter(({ rect, value }) => {
@@ -118,7 +133,7 @@
       const codeIndex = parentLines.findIndex((line) => PROJECT_CODE_RE.test(line));
       const nextLine = parentLines[codeIndex + 1] || "";
       if (codeIndex >= 0 && nextLine && !PROJECT_CODE_RE.test(nextLine)) {
-        return `${parentLines[codeIndex]} ${nextLine}`;
+        return projectQueryFromText(`${parentLines[codeIndex]} ${nextLine}`);
       }
     }
 
@@ -145,9 +160,9 @@
         !["DRAWING", "PROPOSAL", "QB:", "ACTIONS:", "DOCUSIGN:", "CABINETS:", "MATERIALS:"].includes(nextLine.toUpperCase());
 
       if (codeOnly && nextLineLooksLikeTitle) {
-        return `${projectLine} ${nextLine}`;
+        return projectQueryFromText(`${projectLine} ${nextLine}`);
       }
-      return projectLine;
+      return projectQueryFromText(projectLine);
     }
 
     const panelText = text(panel && panel.innerText);

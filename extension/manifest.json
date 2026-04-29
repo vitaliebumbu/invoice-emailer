@@ -1,0 +1,20 @@
+{
+  "manifest_version": 3,
+  "name": "Acadia Invoice Button",
+  "description": "Adds a Send invoice button to the Acadia project board.",
+  "version": "0.1.0",
+  "content_scripts": [
+    {
+      "matches": ["https://sys.acadiacraft.com/*", "http://sys.acadiacraft.com/*"],
+      "js": ["content.js"],
+      "css": ["styles.css"],
+      "run_at": "document_idle",
+      "all_frames": true
+    }
+  ],
+  "host_permissions": [
+    "http://127.0.0.1:5055/*",
+    "https://sys.acadiacraft.com/*",
+    "http://sys.acadiacraft.com/*"
+  ]
+}

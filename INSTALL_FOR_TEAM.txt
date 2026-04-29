@@ -1,0 +1,61 @@
+INVOICE EMAILER - EASY INSTALL
+==============================
+
+What this does:
+Adds an "Invoice Request" button inside an Acadia project.
+The button finds the proposal PDF in Dropbox and opens an Outlook email draft.
+
+Before you start, make sure you have:
+- Google Chrome
+- Outlook desktop app
+- Dropbox synced on your computer
+- Access to Acadia
+
+INSTALL
+-------
+
+1. Download the project from GitHub:
+   https://github.com/vitaliebumbu/invoice-emailer
+
+2. Click Code, then Download ZIP.
+
+3. Unzip the folder into Documents.
+
+4. Open the folder and double-click:
+   install.bat
+
+5. When setup is done, open the file named:
+   .env
+
+6. Confirm these lines:
+   JOBS_ROOT=C:\Acadia Craft Dropbox\1 AC Jobs
+   TO_EMAIL=billing@acadiacraft.com
+   CC_EMAIL=denis@acadiacraft.com
+   FROM_NAME=Your Name
+
+7. Save and close .env.
+
+8. Double-click:
+   start-helper.bat
+
+   Keep this window open while using Acadia.
+
+9. Open Chrome and go to:
+   chrome://extensions
+
+10. Turn on Developer mode.
+
+11. Click Load unpacked.
+
+12. Select the folder named:
+    extension
+
+13. Open Acadia and open a project.
+
+14. Click:
+    Invoice Request
+
+If the button does not show:
+- Go back to chrome://extensions
+- Click the reload icon on Acadia Invoice Button
+- Refresh Acadia

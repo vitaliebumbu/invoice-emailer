@@ -1,0 +1,109 @@
+.acadia-invoice-actions-button {
+  display: block;
+  width: fit-content;
+  min-height: 30px;
+  margin: 6px 0 8px;
+  border: 0;
+  border-radius: 4px;
+  padding: 0 10px;
+  background: #eeeeee;
+  color: #444444;
+  cursor: pointer;
+  font: 400 14px/1 Arial, Helvetica, sans-serif;
+  letter-spacing: 0;
+}
+
+.acadia-invoice-actions-button:hover {
+  background: #e1e1e1;
+}
+
+.acadia-invoice-actions-button:disabled {
+  color: #999999;
+  cursor: wait;
+}
+
+#acadia-invoice-popover {
+  position: fixed;
+  z-index: 2147483647;
+  width: 260px;
+  border: 1px solid #d8d8d8;
+  border-radius: 4px;
+  padding: 10px;
+  background: #ffffff;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.22);
+  color: #333333;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.acadia-invoice-popover-title {
+  margin-bottom: 8px;
+  color: #444444;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+
+.acadia-invoice-popover-stage {
+  width: 100%;
+  min-height: 32px;
+  border: 1px solid #d8d8d8;
+  border-radius: 4px;
+  padding: 0 8px;
+  background: #ffffff;
+  color: #444444;
+  font: 14px/1.2 Arial, Helvetica, sans-serif;
+}
+
+.acadia-invoice-popover-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.acadia-invoice-popover-actions button {
+  min-height: 30px;
+  border: 0;
+  border-radius: 4px;
+  padding: 0 10px;
+  cursor: pointer;
+  font: 400 14px/1 Arial, Helvetica, sans-serif;
+}
+
+.acadia-invoice-cancel {
+  background: #eeeeee;
+  color: #444444;
+}
+
+.acadia-invoice-send {
+  background: #333333;
+  color: #ffffff;
+}
+
+#acadia-invoice-status {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 2147483647;
+  max-width: min(420px, calc(100vw - 40px));
+  border-radius: 4px;
+  padding: 9px 11px;
+  background: #333333;
+  color: #ffffff;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+  font: 12px/1.35 Arial, Helvetica, sans-serif;
+  overflow-wrap: anywhere;
+}
+
+#acadia-invoice-status:empty {
+  display: none;
+}
+
+#acadia-invoice-status[data-mode="error"] {
+  background: #b42318;
+}
+
+#acadia-invoice-status[data-mode="success"] {
+  background: #067647;
+}

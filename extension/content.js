@@ -83,7 +83,52 @@
       .find((element) => PROJECT_CODE_RE.test(text(element.innerText)) && text(element.innerText).includes("ACTIONS:"));
   }
 
+  function visibleProjectHeaderQuery() {
+    const candidates = Array.from(document.querySelectorAll("div, span, h1, h2, h3"))
+      .filter(visibleElement)
+      .map((element) => {
+        const rect = element.getBoundingClientRect();
+        const value = cleanProjectQuery(element.innerText || element.textContent);
+        return { element, rect, value };
+      })
+      .filter(({ rect, value }) => {
+        return (
+          PROJECT_CODE_RE.test(value) &&
+          rect.top >= 35 &&
+          rect.top <= 230 &&
+          rect.left >= 180 &&
+          rect.width >= 25
+        );
+      })
+      .sort((a, b) => {
+        const aHasTitle = a.value.replace(PROJECT_CODE_RE, "").trim().length > 2 ? 0 : 1;
+        const bHasTitle = b.value.replace(PROJECT_CODE_RE, "").trim().length > 2 ? 0 : 1;
+        return aHasTitle - bHasTitle || a.rect.top - b.rect.top || a.rect.left - b.rect.left;
+      });
+
+    for (const { element, value } of candidates) {
+      if (value.replace(PROJECT_CODE_RE, "").trim().length > 2) {
+        return value;
+      }
+
+      const parentLines = String(element.parentElement && element.parentElement.innerText ? element.parentElement.innerText : "")
+        .split(/\n+/)
+        .map(cleanProjectQuery)
+        .filter(Boolean);
+      const codeIndex = parentLines.findIndex((line) => PROJECT_CODE_RE.test(line));
+      const nextLine = parentLines[codeIndex + 1] || "";
+      if (codeIndex >= 0 && nextLine && !PROJECT_CODE_RE.test(nextLine)) {
+        return `${parentLines[codeIndex]} ${nextLine}`;
+      }
+    }
+
+    return "";
+  }
+
   function currentProjectQuery() {
+    const headerQuery = visibleProjectHeaderQuery();
+    if (headerQuery) return headerQuery;
+
     const panel = findOpenProjectPanel();
     const source = document.body || panel;
     const lines = String(source && source.innerText ? source.innerText : "")

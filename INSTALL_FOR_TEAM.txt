@@ -39,6 +39,9 @@ INSTALL
    - 1 Quotes
    - 2 IN PRODUCTION
 
+   Engineering Queue and Production Queue projects are expected in:
+   2 IN PRODUCTION
+
 7. Save and close .env.
 
 8. Double-click:

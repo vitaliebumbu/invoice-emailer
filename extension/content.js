@@ -84,7 +84,27 @@
   }
 
   function currentProjectQuery() {
-    const panel = findOpenProjectPanel() || document.body;
+    const panel = findOpenProjectPanel();
+    const source = document.body || panel;
+    const lines = String(source && source.innerText ? source.innerText : "")
+      .split(/\n+/)
+      .map(cleanProjectQuery)
+      .filter(Boolean);
+    const projectLineIndex = lines.findIndex((line) => PROJECT_CODE_RE.test(line));
+    if (projectLineIndex >= 0) {
+      const projectLine = lines[projectLineIndex];
+      const codeOnly = projectLine.match(PROJECT_CODE_RE) && projectLine.replace(PROJECT_CODE_RE, "").trim().length === 0;
+      const nextLine = lines[projectLineIndex + 1] || "";
+      const nextLineLooksLikeTitle =
+        nextLine &&
+        !["DRAWING", "PROPOSAL", "QB:", "ACTIONS:", "DOCUSIGN:", "CABINETS:", "MATERIALS:"].includes(nextLine.toUpperCase());
+
+      if (codeOnly && nextLineLooksLikeTitle) {
+        return `${projectLine} ${nextLine}`;
+      }
+      return projectLine;
+    }
+
     const panelText = text(panel && panel.innerText);
     const code = panelText.match(PROJECT_CODE_RE);
     return code ? code[0] : "";

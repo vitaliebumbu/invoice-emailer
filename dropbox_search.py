@@ -240,7 +240,7 @@ def search_projects(query):
         if matched and project_name not in seen:
             seen.add(project_name)
             filename, pdf_path = _latest_pdf(matched_pdfs, proposal_dir)
-            code_match = re.match(r"^([A-Z]{2}\d{2,4})\s", filename, re.IGNORECASE)
+            code_match = re.search(r"\b([A-Z]{1,3}\d{2,4})\b", filename, re.IGNORECASE)
             code = code_match.group(1).upper() if code_match else ""
             results.append(
                 {

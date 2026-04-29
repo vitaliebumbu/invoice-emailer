@@ -1,4 +1,5 @@
 import os
+import re
 from flask import Flask, jsonify, render_template, request, redirect, url_for, flash
 from dotenv import load_dotenv
 
@@ -14,6 +15,11 @@ app.secret_key = os.environ.get("SECRET_KEY", "change-me-in-production")
 ALLOWED_EXTENSION_ORIGIN = "https://sys.acadiacraft.com"
 
 db.init_db()
+
+
+def extract_project_code(value):
+    match = re.search(r"\b[A-Z]{1,3}\d{2,4}\b", value or "", re.IGNORECASE)
+    return match.group(0).upper() if match else ""
 
 
 @app.after_request
@@ -128,9 +134,11 @@ def api_create_draft():
     if not os.path.isfile(pdf_path):
         return jsonify({"error": "Proposal PDF was found in search, but is missing on disk."}), 404
 
+    project_code = extract_project_code(query) or selected.get("code") or ""
+
     try:
-        emailer.open_invoice_email(project_name, stage, pdf_path, selected.get("code") or query)
-        db.log_invoice_email(project_name, stage, os.path.basename(pdf_path), selected.get("code") or query)
+        emailer.open_invoice_email(project_name, stage, pdf_path, project_code)
+        db.log_invoice_email(project_name, stage, os.path.basename(pdf_path), project_code)
     except Exception as e:
         return jsonify({"error": f"Outlook could not create the draft: {e}"}), 500
 

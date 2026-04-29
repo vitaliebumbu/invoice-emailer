@@ -45,10 +45,13 @@ Confirm these lines look right:
 
 ```text
 JOBS_ROOT=C:\Acadia Craft Dropbox\1 AC Jobs
+JOB_SEARCH_FOLDERS=2 IN PRODUCTION;1 Quotes;1 Quotes\_Acadia Inquiry
 TO_EMAIL=billing@acadiacraft.com
 CC_EMAIL=denis@acadiacraft.com
 FROM_NAME=Your Name
 ```
+
+`JOBS_ROOT` may be different for each person. It should point to the local Dropbox folder that contains `1 Quotes` and `2 IN PRODUCTION`.
 
 Save and close the file.
 
@@ -98,6 +101,7 @@ The extension reads the project code from the opened project, so you should not 
 SECRET_KEY=change-me-to-a-random-string
 PORT=5055
 JOBS_ROOT=C:\Acadia Craft Dropbox\1 AC Jobs
+JOB_SEARCH_FOLDERS=2 IN PRODUCTION;1 Quotes;1 Quotes\_Acadia Inquiry
 TO_EMAIL=billing@acadiacraft.com
 CC_EMAIL=denis@acadiacraft.com
 FROM_NAME=Vitalie
@@ -106,6 +110,8 @@ FROM_NAME=Vitalie
 ## Notes
 
 - The draft opens in Outlook; it does not send automatically.
+- Production jobs are searched in `2 IN PRODUCTION`; quote-stage jobs are searched in `1 Quotes` and `1 Quotes\_Acadia Inquiry`.
+- If Dropbox is synced to another drive, update only `JOBS_ROOT` in `.env`.
 - The original Flask pages still work at `http://127.0.0.1:5055/`.
 - Invoice draft history is still recorded in `invoices.db`.
 - If the button does not appear after updating the extension files, go to `chrome://extensions` and click the reload icon on **Acadia Invoice Button**, then refresh Acadia.

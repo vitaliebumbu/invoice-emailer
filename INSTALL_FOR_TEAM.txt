@@ -29,9 +29,15 @@ INSTALL
 
 6. Confirm these lines:
    JOBS_ROOT=C:\Acadia Craft Dropbox\1 AC Jobs
+   JOB_SEARCH_FOLDERS=2 IN PRODUCTION;1 Quotes;1 Quotes\_Acadia Inquiry
    TO_EMAIL=billing@acadiacraft.com
    CC_EMAIL=denis@acadiacraft.com
    FROM_NAME=Your Name
+
+   JOBS_ROOT may be different on your computer.
+   It should point to the Dropbox folder that contains:
+   - 1 Quotes
+   - 2 IN PRODUCTION
 
 7. Save and close .env.
 

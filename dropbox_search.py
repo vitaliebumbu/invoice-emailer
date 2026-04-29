@@ -4,12 +4,40 @@ Searches the local Acadia Craft Dropbox for proposal PDFs.
 Supports two search modes:
   - By code prefix, e.g. "DQ74", matching PDF filename text
   - By project name, e.g. "massey", matching project folder text
+
+The Dropbox root is configurable because each teammate may sync Dropbox to a
+different drive or folder.
 """
 
 import os
 import re
 
 JOBS_ROOT = os.environ.get("JOBS_ROOT", r"C:\Acadia Craft Dropbox\1 AC Jobs")
+DEFAULT_SEARCH_FOLDERS = [
+    r"2 IN PRODUCTION",
+    r"1 Quotes",
+    r"1 Quotes\_Acadia Inquiry",
+]
+
+
+def _configured_search_folders():
+    raw = os.environ.get("JOB_SEARCH_FOLDERS", "").strip()
+    if not raw:
+        return DEFAULT_SEARCH_FOLDERS
+    return [item.strip() for item in raw.split(";") if item.strip()]
+
+
+def _search_roots():
+    roots = []
+    for folder in _configured_search_folders():
+        root = folder if os.path.isabs(folder) else os.path.join(JOBS_ROOT, folder)
+        if os.path.isdir(root):
+            roots.append(root)
+
+    if not roots and os.path.isdir(JOBS_ROOT):
+        roots.append(JOBS_ROOT)
+
+    return roots
 
 
 def _all_proposal_folders():
@@ -17,18 +45,19 @@ def _all_proposal_folders():
     Yield (project_name, proposal_dir, pdfs) for every folder named Proposal
     that contains at least one PDF, skipping folders named Old.
     """
-    for dirpath, dirnames, filenames in os.walk(JOBS_ROOT):
-        dirnames[:] = [d for d in dirnames if d.lower() != "old"]
+    for search_root in _search_roots():
+        for dirpath, dirnames, filenames in os.walk(search_root):
+            dirnames[:] = [d for d in dirnames if d.lower() != "old"]
 
-        if os.path.basename(dirpath).lower() != "proposal":
-            continue
+            if os.path.basename(dirpath).lower() != "proposal":
+                continue
 
-        pdfs = [f for f in filenames if f.lower().endswith(".pdf")]
-        if not pdfs:
-            continue
+            pdfs = [f for f in filenames if f.lower().endswith(".pdf")]
+            if not pdfs:
+                continue
 
-        project_name = os.path.basename(os.path.dirname(dirpath))
-        yield project_name, dirpath, pdfs
+            project_name = os.path.basename(os.path.dirname(dirpath))
+            yield project_name, dirpath, pdfs
 
 
 def _latest_pdf(pdfs, proposal_dir):

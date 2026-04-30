@@ -65,6 +65,14 @@ start-helper.bat
 
 Keep that window open while using Acadia.
 
+Optional: to make the helper start automatically after laptop reboot, double-click:
+
+```text
+install-autostart.bat
+```
+
+After that, Windows starts the helper in the background when you sign in.
+
 ### Step 5: Add To Chrome
 
 1. Open Chrome.
@@ -86,6 +94,20 @@ When this repo changes, download the ZIP again or pull the latest version. Then:
 2. Go to `chrome://extensions`.
 3. Click the reload icon on **Acadia Invoice Button**.
 4. Refresh Acadia.
+
+## Auto-Start
+
+Chrome extensions cannot start local programs directly. To avoid manually starting the helper after each reboot, run:
+
+```text
+install-autostart.bat
+```
+
+To remove auto-start later, run:
+
+```text
+uninstall-autostart.bat
+```
 
 ## Use
 

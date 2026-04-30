@@ -49,6 +49,13 @@ INSTALL
 
    Keep this window open while using Acadia.
 
+   Optional:
+   To make the helper start automatically after laptop reboot, double-click:
+   install-autostart.bat
+
+   To remove auto-start later, double-click:
+   uninstall-autostart.bat
+
 9. Open Chrome and go to:
    chrome://extensions
 

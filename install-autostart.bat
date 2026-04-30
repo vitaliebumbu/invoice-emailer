@@ -1,12 +1,14 @@
 @echo off
 setlocal
 cd /d "%~dp0"
+set "QUIET="
+if /I "%~1"=="/quiet" set "QUIET=1"
 
 if not exist "venv\Scripts\pythonw.exe" (
   echo Setup has not been completed yet.
   echo Double-click install.bat first.
   echo.
-  pause
+  if not defined QUIET pause
   exit /b 1
 )
 
@@ -23,4 +25,4 @@ echo Starting it now...
 wscript.exe "%~dp0start-helper-hidden.vbs"
 echo Done.
 echo.
-pause
+if not defined QUIET pause

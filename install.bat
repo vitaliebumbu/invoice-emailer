@@ -47,12 +47,19 @@ if %errorlevel% neq 0 (
   exit /b 1
 )
 
+echo Setting helper to start automatically with Windows...
+call "%~dp0install-autostart.bat" /quiet
+if %errorlevel% neq 0 (
+  echo Failed to set up automatic start.
+  echo You can still double-click start-helper.bat before using Acadia.
+)
+
 echo.
 echo Setup complete.
 echo.
 echo Next:
 echo 1. Open .env and confirm JOBS_ROOT and FROM_NAME.
-echo 2. Double-click start-helper.bat before using Acadia.
-echo 3. In Chrome, load the extension folder from this project.
+echo 2. In Chrome, load the extension folder from this project.
+echo 3. Open Acadia and use Invoice Request.
 echo.
 pause

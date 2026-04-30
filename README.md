@@ -33,6 +33,8 @@ Wait until it says **Setup complete**.
 
 If Windows shows a warning, only continue if this folder came from the company GitHub repo.
 
+This also sets the helper to start automatically when Windows starts.
+
 ### Step 3: Check Settings
 
 Open the file named:
@@ -55,25 +57,7 @@ FROM_NAME=Your Name
 
 Save and close the file.
 
-### Step 4: Start
-
-Double-click:
-
-```text
-start-helper.bat
-```
-
-Keep that window open while using Acadia.
-
-Optional: to make the helper start automatically after laptop reboot, double-click:
-
-```text
-install-autostart.bat
-```
-
-After that, Windows starts the helper in the background when you sign in.
-
-### Step 5: Add To Chrome
+### Step 4: Add To Chrome
 
 1. Open Chrome.
 2. Go to `chrome://extensions`.
@@ -82,7 +66,7 @@ After that, Windows starts the helper in the background when you sign in.
 5. Select the `extension` folder inside this repo.
 6. Open or refresh Acadia.
 
-### Step 6: Test
+### Step 5: Test
 
 Open a project in Acadia. The **Invoice Request** button should appear in the project panel under **QB:**. Click it, choose the invoice stage, then click **Open draft**.
 
@@ -97,7 +81,9 @@ When this repo changes, download the ZIP again or pull the latest version. Then:
 
 ## Auto-Start
 
-Chrome extensions cannot start local programs directly. To avoid manually starting the helper after each reboot, run:
+Chrome extensions cannot start local programs directly. `install.bat` registers the helper to start automatically when Windows starts.
+
+To repair auto-start manually, run:
 
 ```text
 install-autostart.bat

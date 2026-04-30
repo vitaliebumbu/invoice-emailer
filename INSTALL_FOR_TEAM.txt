@@ -24,6 +24,8 @@ INSTALL
 4. Open the folder and double-click:
    install.bat
 
+   This installs the helper and sets it to start automatically when Windows starts.
+
 5. When setup is done, open the file named:
    .env
 
@@ -44,32 +46,26 @@ INSTALL
 
 7. Save and close .env.
 
-8. Double-click:
-   start-helper.bat
-
-   Keep this window open while using Acadia.
-
-   Optional:
-   To make the helper start automatically after laptop reboot, double-click:
-   install-autostart.bat
-
-   To remove auto-start later, double-click:
-   uninstall-autostart.bat
-
-9. Open Chrome and go to:
+8. Open Chrome and go to:
    chrome://extensions
 
-10. Turn on Developer mode.
+9. Turn on Developer mode.
 
-11. Click Load unpacked.
+10. Click Load unpacked.
 
-12. Select the folder named:
+11. Select the folder named:
     extension
 
-13. Open Acadia and open a project.
+12. Open Acadia and open a project.
 
-14. Click:
+13. Click:
     Invoice Request
+
+If the helper ever stops working after reboot:
+- Double-click install.bat again.
+
+To remove automatic startup:
+- Double-click uninstall-autostart.bat
 
 If the button does not show:
 - Go back to chrome://extensions

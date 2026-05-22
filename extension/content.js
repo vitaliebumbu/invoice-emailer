@@ -98,6 +98,28 @@
       .find((element) => PROJECT_CODE_RE.test(text(element.innerText)) && text(element.innerText).includes("ACTIONS:"));
   }
 
+  function findNewLayoutActionsHeader() {
+    const candidates = Array.from(document.querySelectorAll("div, span, h1, h2, h3, h4, h5, strong, b"))
+      .filter(visibleElement)
+      .filter((element) => text(element.textContent).toUpperCase() === "ACTIONS");
+
+    return candidates
+      .map((element) => ({ element, rect: element.getBoundingClientRect() }))
+      .filter(({ rect }) => rect.left > window.innerWidth * 0.55 && rect.top > 120)
+      .sort((a, b) => a.rect.top - b.rect.top || a.rect.left - b.rect.left)[0]?.element || null;
+  }
+
+  function actionTileContainer(header) {
+    let node = header ? header.parentElement : null;
+    while (node && node !== document.body) {
+      const buttons = node.querySelectorAll("button, [role='button'], a").length;
+      const rect = node.getBoundingClientRect();
+      if (buttons >= 2 && rect.width >= 250) return node;
+      node = node.parentElement;
+    }
+    return header ? header.parentElement : null;
+  }
+
   function visibleProjectHeaderQuery() {
     const candidates = Array.from(document.querySelectorAll("div, span, h1, h2, h3"))
       .filter(visibleElement)
@@ -291,6 +313,38 @@
     label.insertAdjacentElement("afterend", button);
   }
 
+  function addNewLayoutButton() {
+    const header = findNewLayoutActionsHeader();
+    const container = actionTileContainer(header);
+    if (!container || container.querySelector(".acadia-invoice-tile-button")) return;
+
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "acadia-invoice-tile-button";
+    button.title = "Create invoice email draft";
+    button.innerHTML = `
+      <span class="acadia-invoice-tile-icon">Inv</span>
+      <span class="acadia-invoice-tile-label">Invoice Request</span>
+    `;
+    button.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      showPopover(button);
+    });
+
+    const firstAction = Array.from(container.querySelectorAll("button, [role='button'], a"))
+      .filter(visibleElement)
+      .find((element) => text(element.innerText || element.textContent));
+
+    if (firstAction && firstAction.parentElement) {
+      firstAction.parentElement.insertBefore(button, firstAction);
+    } else if (header.nextSibling) {
+      header.parentElement.insertBefore(button, header.nextSibling);
+    } else {
+      container.appendChild(button);
+    }
+  }
+
   function removeBoardButtons() {
     document
       .querySelectorAll(".acadia-invoice-card-button, #acadia-invoice-global, #acadia-invoice-loaded-marker")
@@ -299,6 +353,7 @@
 
   function scan() {
     removeBoardButtons();
+    addNewLayoutButton();
     for (const label of findTargetLabels()) {
       addProjectPanelButton(label);
     }

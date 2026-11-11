@@ -162,8 +162,46 @@
     return "";
   }
 
+  // The project name box in the page header (an <input>, so innerText never sees it).
+  function headerProjectName() {
+    const input = document.querySelector(".page-header .header-name-block input.name-input");
+    return text(input && input.value);
+  }
+
+  // Ask the page's Dropbox Open script (dropbox_open.js) for the job's Dropbox path, the same one
+  // DROPBOX > Open uses. Resolves to "" when that script isn't there (no ack) or finds no path.
+  function requestDropboxPath() {
+    return new Promise((resolve) => {
+      const id = `${Date.now()}-${Math.random()}`;
+      let acked = false;
+      const done = (path) => {
+        window.removeEventListener("message", onMessage);
+        clearTimeout(ackTimer);
+        clearTimeout(doneTimer);
+        resolve(path || "");
+      };
+      const onMessage = (event) => {
+        const data = event.data;
+        if (event.source !== window || !data || data.id !== id) return;
+        if (data.type === "acp-dropbox-path-ack") acked = true;
+        if (data.type === "acp-dropbox-path") done(data.path);
+      };
+      window.addEventListener("message", onMessage);
+      const ackTimer = setTimeout(() => { if (!acked) done(""); }, 500);
+      const doneTimer = setTimeout(() => done(""), 30000);
+      window.postMessage({ type: "acp-dropbox-path-request", id }, location.origin);
+    });
+  }
+
   function currentProjectQuery() {
     const headerQuery = visibleProjectHeaderQuery();
+    const name = headerProjectName();
+    // "DS53" alone can't be matched to a folder named "Remont - Upton": add the project name.
+    if (name && (!headerQuery || headerQuery.replace(PROJECT_CODE_RE, "").trim().length <= 2)) {
+      const tag = text(document.querySelector(".header-tags .number-tag")?.textContent);
+      const code = (headerQuery.match(PROJECT_CODE_RE) || tag.match(PROJECT_CODE_RE) || [""])[0];
+      return cleanProjectQuery(`${code} ${name}`);
+    }
     if (headerQuery) return headerQuery;
 
     const panel = findOpenProjectPanel();
@@ -273,6 +311,8 @@
       closePopover();
       button.disabled = true;
       button.textContent = "Opening...";
+      setStatus(`Finding the Dropbox folder for ${query}...`, "working");
+      const dropboxPath = await requestDropboxPath();
       setStatus(`Searching Dropbox for ${query}...`, "working");
 
       const payload = await api("/api/create-draft", {
@@ -280,6 +320,7 @@
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           project_query: query,
+          dropbox_path: dropboxPath,
           stage,
           page_url: window.location.href,
           page_title: document.title

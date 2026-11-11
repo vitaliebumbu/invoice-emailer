@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 
 import db
 import emailer
-from dropbox_search import search_projects
+from dropbox_search import project_from_dropbox_path, search_projects
 
 load_dotenv()
 
@@ -123,7 +123,11 @@ def api_create_draft():
     if stage not in db.ALL_STAGES:
         return jsonify({"error": "Choose a valid invoice stage."}), 400
 
-    results = search_projects(query)
+    # The extension can send the job's Dropbox path from AC System (the folder DROPBOX > Open
+    # uses); that is exact, so try it before searching by code / name.
+    dropbox_path = str(payload.get("dropbox_path", "")).strip()
+    from_path = project_from_dropbox_path(dropbox_path, query) if dropbox_path else None
+    results = [from_path] if from_path else search_projects(query)
     if not results:
         return jsonify({"error": f'No Dropbox project matched "{query}".'}), 404
 

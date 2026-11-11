@@ -433,6 +433,45 @@ def search_projects(query):
     return results
 
 
+def project_from_dropbox_path(dropbox_path, query=""):
+    """
+    The proposal for the job folder AC System links to, e.g.
+    "/1 AC Jobs/2 IN PRODUCTION/- PUNCH LIST/Remont - Upton" -> <Dropbox root>\\...\\Remont - Upton,
+    newest PDF in its Proposal folder first. The Dropbox root is the folder above JOBS_ROOT.
+    If that folder is gone (the job moved since), a project folder with the same name is used.
+    Returns a search_projects-style result, or None.
+    """
+    parts = [p for p in str(dropbox_path or "").replace("\\", "/").split("/") if p.strip()]
+    if not parts:
+        return None
+
+    dropbox_root = os.path.dirname(os.path.normpath(JOBS_ROOT))
+    folder = os.path.join(dropbox_root, *parts)
+    if not os.path.isdir(folder):
+        leaf = parts[-1].strip().lower()
+        folder = next(
+            (path for name, path in _all_project_folders() if name.strip().lower() == leaf),
+            None,
+        )
+        if not folder:
+            return None
+
+    # Only a real proposal (in a Proposal folder or named proposal / estimate / quote); otherwise
+    # let the normal search decide rather than attach a drawing.
+    scored_pdfs = [item for item in _pdfs_under(folder) if item[0] > 0]
+    if not scored_pdfs:
+        return None
+
+    filename, pdf_path = _latest_scored_pdf(scored_pdfs)
+    code_match = re.search(r"\b([A-Z]{1,3}\d{2,4})\b", f"{query} {filename}", re.IGNORECASE)
+    return {
+        "project_name": os.path.basename(os.path.normpath(folder)),
+        "filename": filename,
+        "pdf_path": pdf_path,
+        "code": code_match.group(1).upper() if code_match else "",
+    }
+
+
 def find_proposals(code):
     """Search proposals by project code. Returns list of matches sorted by project name."""
     return search_projects(code)

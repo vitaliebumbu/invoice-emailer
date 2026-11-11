@@ -120,6 +120,7 @@ FROM_NAME=Vitalie
 - The draft opens in Outlook; it does not send automatically.
 - Production jobs are searched in `2 IN PRODUCTION`; quote-stage jobs are searched in `1 Quotes` and `1 Quotes\_Acadia Inquiry`.
 - Engineering Queue and Production Queue projects should be in `2 IN PRODUCTION`.
+- Completed jobs are found automatically: any `_Completed`, `Completed` or `Punch List` folder up to 3 levels under `JOBS_ROOT` (e.g. `2 IN PRODUCTION\SENT TO PRODUCTION\_Completed`), and any such folder directly in the Dropbox root, is searched too, including year subfolders inside it. No `.env` change is needed.
 - If Dropbox is synced to another drive, update only `JOBS_ROOT` in `.env`.
 - The original Flask pages still work at `http://127.0.0.1:5055/`.
 - Invoice draft history is still recorded in `invoices.db`.

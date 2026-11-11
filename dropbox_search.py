@@ -40,6 +40,40 @@ def _configured_search_folders():
     return [item.strip() for item in raw.split(";") if item.strip()]
 
 
+# Finished jobs move out of the stage folders into "_Completed", "Completed" or a punch-list
+# folder, often a level or two down (e.g. 2 IN PRODUCTION\SENT TO PRODUCTION\_Completed).
+ARCHIVE_FOLDER_RE = re.compile(r"complet|punch", re.IGNORECASE)
+# Folders that only group projects (archive folders, "_..." / "- ..." groups, years), so the
+# project folders are inside them rather than being projects themselves.
+CONTAINER_FOLDER_RE = re.compile(r"complet|punch|^[_\-]|^\s*(19|20)\d{2}\s*$", re.IGNORECASE)
+SKIP_FOLDER_NAMES = {"old", "- templates"}
+
+
+def _archive_roots(max_depth=3):
+    """Completed / punch-list folders under JOBS_ROOT (a few levels down) and next to it."""
+    found = []
+
+    def walk(folder, depth):
+        try:
+            with os.scandir(folder) as it:
+                entries = [e for e in it if e.is_dir()]
+        except OSError:
+            return
+        for entry in entries:
+            name = entry.name.strip().lower()
+            if name in SKIP_FOLDER_NAMES:
+                continue
+            if ARCHIVE_FOLDER_RE.search(entry.name):
+                found.append(entry.path)
+            elif depth + 1 < max_depth:
+                walk(entry.path, depth + 1)
+
+    if os.path.isdir(JOBS_ROOT):
+        walk(JOBS_ROOT, 0)
+        walk(os.path.dirname(os.path.normpath(JOBS_ROOT)), max_depth - 1)  # Dropbox root, top level only
+    return found
+
+
 def _search_roots():
     roots = []
     for folder in _configured_search_folders():
@@ -50,6 +84,13 @@ def _search_roots():
     if not roots and os.path.isdir(JOBS_ROOT):
         roots.append(JOBS_ROOT)
 
+    seen = {os.path.normcase(os.path.realpath(r)) for r in roots}
+    for root in _archive_roots():
+        key = os.path.normcase(os.path.realpath(root))
+        if key not in seen:
+            seen.add(key)
+            roots.append(root)
+
     return roots
 
 
@@ -58,12 +99,17 @@ def _all_proposal_folders():
     Yield (project_name, proposal_dir, pdfs) for every folder named Proposal
     that contains at least one PDF, skipping folders named Old.
     """
+    seen = set()
     for search_root in _search_roots():
         for dirpath, dirnames, filenames in os.walk(search_root):
             dirnames[:] = [d for d in dirnames if d.lower() != "old"]
 
             if os.path.basename(dirpath).lower() != "proposal":
                 continue
+            key = os.path.normcase(os.path.realpath(dirpath))
+            if key in seen:  # an archive folder inside a stage folder is walked twice
+                continue
+            seen.add(key)
 
             pdfs = [f for f in filenames if f.lower().endswith(".pdf")]
             if not pdfs:
@@ -73,22 +119,44 @@ def _all_proposal_folders():
             yield project_name, dirpath, pdfs
 
 
-def _all_project_folders():
-    """Yield likely direct project folders from the configured search roots."""
-    skip_names = {"old", "- templates", "- punch list"}
-    for search_root in _search_roots():
-        try:
-            entries = os.scandir(search_root)
-        except OSError:
-            continue
+def _holds_archive(folder):
+    """True for a stage folder such as SENT TO PRODUCTION that holds a _Completed / punch list."""
+    try:
+        with os.scandir(folder) as entries:
+            return any(e.is_dir() and ARCHIVE_FOLDER_RE.search(e.name) for e in entries)
+    except OSError:
+        return False
 
-        with entries:
-            for entry in entries:
-                if not entry.is_dir():
-                    continue
-                if entry.name.strip().lower() in skip_names:
-                    continue
-                yield entry.name, entry.path
+
+def _all_project_folders():
+    """
+    Yield likely project folders from the search roots: their direct subfolders, and the
+    subfolders of grouping folders inside them (_Completed, Completed, - Punch List, years ...),
+    a few levels down.
+    """
+    seen = set()
+
+    def walk(folder, depth):
+        try:
+            with os.scandir(folder) as it:
+                entries = [e for e in it if e.is_dir()]
+        except OSError:
+            return
+        for entry in entries:
+            name = entry.name.strip().lower()
+            if name in SKIP_FOLDER_NAMES:
+                continue
+            if depth < 3 and (CONTAINER_FOLDER_RE.search(entry.name) or _holds_archive(entry.path)):
+                yield from walk(entry.path, depth + 1)
+                continue
+            key = os.path.normcase(os.path.realpath(entry.path))
+            if key in seen:
+                continue
+            seen.add(key)
+            yield entry.name, entry.path
+
+    for search_root in _search_roots():
+        yield from walk(search_root, 0)
 
 
 def _pdfs_under(folder):

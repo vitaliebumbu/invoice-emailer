@@ -5,6 +5,17 @@
 
   let stages = [DEFAULT_STAGE];
   let activePopover = null;
+  let helperIsOld = false;  // the helper on this PC predates folder matching (no helper_version)
+
+  // Which extension copy is talking, so an error says if an old copy is the one in use.
+  function extensionTag() {
+    try {
+      const m = chrome.runtime.getManifest();
+      return `[${m.name} ${m.version}]`;
+    } catch {
+      return "";
+    }
+  }
 
   function text(value) {
     return String(value || "").replace(/\s+/g, " ").trim();
@@ -248,6 +259,7 @@
       if (Array.isArray(payload.stages) && payload.stages.length) {
         stages = payload.stages;
       }
+      helperIsOld = !payload.helper_version;
     } catch {
       setStatus("Start the local invoice helper first.", "error");
     }
@@ -329,7 +341,10 @@
 
       setStatus(`Outlook draft opened: ${payload.stage} - ${payload.project_name}`, "success");
     } catch (error) {
-      setStatus(error.message || "Could not create the Outlook draft.", "error");
+      const old = helperIsOld
+        ? " The invoice helper running on this PC is an old copy: run restart-helper.bat in its folder."
+        : "";
+      setStatus(`${error.message || "Could not create the Outlook draft."}${old} ${extensionTag()}`, "error");
     } finally {
       button.disabled = false;
       button.textContent = "Invoice Request";

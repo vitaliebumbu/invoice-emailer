@@ -13,6 +13,9 @@ app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "change-me-in-production")
 
 ALLOWED_EXTENSION_ORIGIN = "https://sys.acadiacraft.com"
+# Shown at the end of every error so it is clear which helper copy answered.
+HELPER_VERSION = "2026-11-12"
+HELPER_TAG = f"[helper {HELPER_VERSION}, {os.path.dirname(os.path.abspath(__file__))}]"
 
 db.init_db()
 
@@ -106,7 +109,7 @@ def send_invoice():
 def api_stages():
     if request.method == "OPTIONS":
         return ("", 204)
-    return jsonify({"stages": db.ALL_STAGES})
+    return jsonify({"stages": db.ALL_STAGES, "helper_version": HELPER_VERSION})
 
 
 @app.route("/api/create-draft", methods=["POST", "OPTIONS"])
@@ -131,13 +134,16 @@ def api_create_draft():
     if not results:
         # Say which step failed, so it is clear whether the extension sent the folder and
         # where on this PC the helper looked for it.
-        if dropbox_path:
+        if "dropbox_path" not in payload:
+            detail = ("this Invoice button is an old extension copy; in chrome://extensions remove "
+                      "\"Acadia Invoice Button\" and reload \"AC System - Vitalie\"")
+        elif dropbox_path:
             where = local_folder_for(dropbox_path)
             detail = (f'no proposal PDF in "{where}"' if os.path.isdir(where)
                       else f'folder not on this PC: "{where}" (check JOBS_ROOT in .env)')
         else:
-            detail = "AC System sent no Dropbox folder (reload the AC System extension)"
-        return jsonify({"error": f'No Dropbox project matched "{query}": {detail}.'}), 404
+            detail = "AC System gave no Dropbox folder (no DROPBOX > Open button found on this page)"
+        return jsonify({"error": f'No Dropbox project matched "{query}": {detail}. {HELPER_TAG}'}), 404
 
     selected = results[0]
     pdf_path = selected["pdf_path"]

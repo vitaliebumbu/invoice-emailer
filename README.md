@@ -120,6 +120,7 @@ FROM_NAME=Vitalie
 - The draft opens in Outlook; it does not send automatically.
 - Production jobs are searched in `2 IN PRODUCTION`; quote-stage jobs are searched in `1 Quotes` and `1 Quotes\_Acadia Inquiry`.
 - Engineering Queue and Production Queue projects should be in `2 IN PRODUCTION`.
+- After `git pull`, run **`restart-helper.bat`**: the helper runs hidden in the background, so it keeps the old code until it is restarted.
 - When the AC System extension sends the job's Dropbox path (the folder DROPBOX > Open uses), the helper opens that exact folder and takes the newest PDF in its `Proposal` folder; it only searches by code / name when there is no path or that folder has no proposal.
 - Completed jobs are found automatically: any `_Completed`, `Completed` or `Punch List` folder up to 3 levels under `JOBS_ROOT` (e.g. `2 IN PRODUCTION\SENT TO PRODUCTION\_Completed`), and any such folder directly in the Dropbox root, is searched too, including year subfolders inside it. No `.env` change is needed.
 - If Dropbox is synced to another drive, update only `JOBS_ROOT` in `.env`.

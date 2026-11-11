@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 
 import db
 import emailer
-from dropbox_search import project_from_dropbox_path, search_projects
+from dropbox_search import local_folder_for, project_from_dropbox_path, search_projects
 
 load_dotenv()
 
@@ -129,7 +129,15 @@ def api_create_draft():
     from_path = project_from_dropbox_path(dropbox_path, query) if dropbox_path else None
     results = [from_path] if from_path else search_projects(query)
     if not results:
-        return jsonify({"error": f'No Dropbox project matched "{query}".'}), 404
+        # Say which step failed, so it is clear whether the extension sent the folder and
+        # where on this PC the helper looked for it.
+        if dropbox_path:
+            where = local_folder_for(dropbox_path)
+            detail = (f'no proposal PDF in "{where}"' if os.path.isdir(where)
+                      else f'folder not on this PC: "{where}" (check JOBS_ROOT in .env)')
+        else:
+            detail = "AC System sent no Dropbox folder (reload the AC System extension)"
+        return jsonify({"error": f'No Dropbox project matched "{query}": {detail}.'}), 404
 
     selected = results[0]
     pdf_path = selected["pdf_path"]

@@ -433,6 +433,16 @@ def search_projects(query):
     return results
 
 
+def _path_parts(dropbox_path):
+    return [p for p in str(dropbox_path or "").replace("\\", "/").split("/") if p.strip()]
+
+
+def local_folder_for(dropbox_path):
+    """AC System's Dropbox path -> the folder on this PC (Dropbox root = the folder above JOBS_ROOT)."""
+    dropbox_root = os.path.dirname(os.path.normpath(JOBS_ROOT))
+    return os.path.join(dropbox_root, *_path_parts(dropbox_path))
+
+
 def project_from_dropbox_path(dropbox_path, query=""):
     """
     The proposal for the job folder AC System links to, e.g.
@@ -441,12 +451,11 @@ def project_from_dropbox_path(dropbox_path, query=""):
     If that folder is gone (the job moved since), a project folder with the same name is used.
     Returns a search_projects-style result, or None.
     """
-    parts = [p for p in str(dropbox_path or "").replace("\\", "/").split("/") if p.strip()]
+    parts = _path_parts(dropbox_path)
     if not parts:
         return None
 
-    dropbox_root = os.path.dirname(os.path.normpath(JOBS_ROOT))
-    folder = os.path.join(dropbox_root, *parts)
+    folder = local_folder_for(dropbox_path)
     if not os.path.isdir(folder):
         leaf = parts[-1].strip().lower()
         folder = next(
